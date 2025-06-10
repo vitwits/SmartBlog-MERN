@@ -1,6 +1,6 @@
 import fs from "fs";
 import imagekit from "../config/imageKit.js";
-import { Blog } from "../models/Blog.js";
+import Blog from "../models/Blog.js";
 
 export const addBlog = async (req, res) => {
   try {
@@ -55,3 +55,27 @@ export const addBlog = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+export const getAllBlogs = async (req, res) => {
+  try {
+    const blogs = await Blog.find({ isPublished: true });
+    return res.status(200).json({ success: true, blogs });
+  } catch (error) {
+    console.error("Error adding blog:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getBlogById = async (req, res) => {
+  try {
+    const {blogId} = req.params;
+    const blog = await Blog.findById(blogId)
+    if (!blog) {
+      return res.status(404).json({ success: false, message: "Blog not found" });
+    }
+    return res.status(200).json({ success: true, blog });
+  } catch (error) {
+    console.error("Error adding blog:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+}
