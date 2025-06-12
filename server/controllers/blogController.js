@@ -1,6 +1,7 @@
 import fs from "fs";
 import imagekit from "../config/imageKit.js";
 import Blog from "../models/Blog.js";
+import Comment from "../models/Comment.js";
 
 export const addBlog = async (req, res) => {
   try {
@@ -61,7 +62,7 @@ export const getAllBlogs = async (req, res) => {
     const blogs = await Blog.find({ isPublished: true });
     return res.status(200).json({ success: true, blogs });
   } catch (error) {
-    console.error("Error adding blog:", error);
+    console.error("Error getting blogs:", error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -77,7 +78,7 @@ export const getBlogById = async (req, res) => {
     }
     return res.status(200).json({ success: true, blog });
   } catch (error) {
-    console.error("Error adding blog:", error);
+    console.error("Error getting blog:", error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -86,11 +87,15 @@ export const deleteBlogById = async (req, res) => {
   try {
     const { id } = req.body;
     await Blog.findByIdAndDelete(id);
+
+    // Delete all associated comments
+    await Comment.deleteMany({ blog: id });
+
     return res
       .status(200)
       .json({ success: true, message: "Blog deleted successfully" });
   } catch (error) {
-    console.error("Error adding blog:", error);
+    console.error("Error deleting blog:", error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -105,7 +110,34 @@ export const togglePublish = async (req, res) => {
       .status(200)
       .json({ success: true, message: "Blog status updated" });
   } catch (error) {
-    console.error("Error adding blog:", error);
+    console.error("Error publishing blog:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const addComment = async (req, res) => {
+  try {
+    const { blog, name, content } = req.body;
+    await Comment.create({ blog, name, content });
+    return res
+      .status(200)
+      .json({ success: true, message: "Comment added for review" });
+  } catch (error) {
+    console.error("Error adding comment:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getBlogComments = async (req, res) => {
+  try {
+    const { blogId } = req.body;
+    const comments = await Comment.find({
+      blog: blogId,
+      isApproved: true,
+    }).sort({ createdAt: -1 });
+    return res.status(200).json({ success: true, comments });
+  } catch (error) {
+    console.error("Error getting comments:", error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
