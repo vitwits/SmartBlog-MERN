@@ -6,6 +6,7 @@ import Moment from "moment";
 import Footer from "../components/Footer";
 import Loader from "../components/Loader";
 import { useAppContext } from "../context/AppContext";
+import toast from "react-hot-toast";
 
 const Blog = () => {
   const { id } = useParams();
@@ -29,7 +30,7 @@ const Blog = () => {
 
   const fetchComments = async () => {
     try {
-      const { data } = await axios.post("/api/blog/comments", { blogId });
+      const { data } = await axios.post("/api/blog/comments", { blogId: id });
       if (data.success) {
         setComments(data.comments);
       } else {
@@ -42,7 +43,22 @@ const Blog = () => {
 
   const addComment = async (e) => {
     e.preventDefault();
-    // post functionality
+    try {
+      const { data } = await axios.post("/api/blog/add-comment", {
+        blog: id,
+        name,
+        content,
+      });
+      if (data.success) {
+        toast.success(data.message);
+        setName("");
+        setContent("");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
   useEffect(() => {
